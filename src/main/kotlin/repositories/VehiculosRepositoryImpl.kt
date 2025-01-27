@@ -134,7 +134,7 @@ class VehiculosRepositoryImpl: VehiculosRepository {
     }
 
     private fun redimensionar(modo: ModoRedimension = ModoRedimension.AUM) {
-        logger.debug { "Redimensionando el array de estudiantes modo: ${modo.name}" }
+        logger.debug { "Redimensionando el array de vehiculos modo: ${modo.name}" }
         if (modo == ModoRedimension.DIS) {
             maxVehiculos /= 2
             vehiculos = vehiculos.redimensionar(ModoRedimension.DIS, maxVehiculos)
