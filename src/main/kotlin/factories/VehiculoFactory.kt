@@ -3,7 +3,7 @@ package jorgemrj.factories
 import jorgemrj.models.CocheElectricoImpl
 import jorgemrj.models.CocheGasolinaImpl
 import jorgemrj.models.CocheHibridoImpl
-import jorgemrj.models.MotocicletaImpl
+import jorgemrj.models.MotoImpl
 import jorgemrj.models.Vehiculo
 
 
@@ -30,7 +30,7 @@ class VehiculoFactory {
             val matricula = generarMatricula()
 
             return when (randomNum) {
-                in 0..25 -> MotocicletaImpl(marca = marca, matricula = matricula, kilometros = kilometros)
+                in 0..25 -> MotoImpl(marca = marca, matricula = matricula, kilometros = kilometros)
                 in 26..50 -> CocheGasolinaImpl(marca = marca, matricula = matricula, kilometros = kilometros)
                 in 51..75 -> CocheHibridoImpl(marca = marca, matricula = matricula, kilometros = kilometros)
                 else -> CocheElectricoImpl(marca = marca, matricula = matricula, kilometros = kilometros)

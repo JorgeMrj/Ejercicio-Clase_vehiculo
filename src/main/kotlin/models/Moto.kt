@@ -1,5 +1,5 @@
 package jorgemrj.models
 
-interface Motocicleta {
+interface Moto {
     fun cilindrada()
 }
