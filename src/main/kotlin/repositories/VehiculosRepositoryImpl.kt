@@ -8,8 +8,7 @@ import java.time.LocalDateTime
 
 class VehiculosRepositoryImpl: VehiculosRepository {
     private val logger = logging()
-    var maxVehiculos: Int = 10
-    private var vehiculos = arrayOfNulls<Vehiculo>(maxVehiculos)
+    private var vehiculos = mutableListOf<Vehiculo>()
     private var nextId = 1
 
     private fun generateId(): Int {
@@ -17,7 +16,7 @@ class VehiculosRepositoryImpl: VehiculosRepository {
         return nextId++
     }
 
-    override fun filterBy(predicate: (Vehiculo) -> Boolean): Array<Vehiculo> {
+    override fun filterBy(predicate: (Vehiculo) -> Boolean): List<Vehiculo> {
         logger.debug { "Filtrando vehiculos" }
         return vehiculos.filterBy(predicate)
     }
@@ -42,12 +41,12 @@ class VehiculosRepositoryImpl: VehiculosRepository {
         return vehiculos.minByOrNull(selector, predicate)
     }
 
-    override fun sortedBy(mode: ModoOrdenamiento, condition: (Vehiculo) -> Int): Array<Vehiculo> {
+    override fun sortedBy(mode: ModoOrdenamiento, condition: (Vehiculo) -> Int): List<Vehiculo> {
         logger.debug { "Ordenando vehiculos" }
         return vehiculos.sortedBy(mode, condition)
     }
 
-    override fun findAll(): Array<Vehiculo> {
+    override fun findAll(): List<Vehiculo> {
         logger.debug { "Encontrar todos los vehiculos" }
         return vehiculos.filterBy { true }
     }
@@ -64,17 +63,10 @@ class VehiculosRepositoryImpl: VehiculosRepository {
         nuevoVehiculo.createdAt = LocalDateTime.now()
         nuevoVehiculo.updatedAt = LocalDateTime.now()
 
-        var pos = vehiculos.indexOf { it == null }
-        if (pos != -1) {
-            vehiculos[pos] = nuevoVehiculo
-        } else {
-            logger.error { "No hay espacio disponible para guardar el vehiculo" }
-            redimensionar(modo = ModoRedimension.AUM)
-            pos = vehiculos.indexOf { it == null }
-            vehiculos[pos] = nuevoVehiculo
+        if (!vehiculos.contains(nuevoVehiculo)) {
+            vehiculos.add(nuevoVehiculo)
         }
-        logger.debug { "Vehiculo creado correctamente" }
-        return nuevoVehiculo
+        return nuevoVehiculo.also { logger.debug { "Vehiculo creado correctamente" } }
     }
 
     override fun update(id: Int, item: Vehiculo): Vehiculo? {
@@ -83,10 +75,8 @@ class VehiculosRepositoryImpl: VehiculosRepository {
             val nuevoVehiculo = it.copy()
             nuevoVehiculo.id = generateId()
             nuevoVehiculo.updatedAt = LocalDateTime.now()
-            val index = vehiculos.indexOfFirst { vehiculo -> vehiculo?.id == id }
-            if (index >= 0) {
-                vehiculos[index] = nuevoVehiculo
-            }
+            val index = vehiculos.indexOf { it?.id == id }
+            vehiculos[index] = nuevoVehiculo
             nuevoVehiculo.also { logger.info { "Vehiculo actualizado" } }
         }
     }
@@ -94,37 +84,11 @@ class VehiculosRepositoryImpl: VehiculosRepository {
     override fun delete(id: Int): Vehiculo? {
         logger.info { "Borrando vehiculo" }
         return this.findById(id)?.let { vehiculo ->
-            val index = vehiculos.indexOfFirst { it?.id == id }
-            if (index >= 0) {
-                vehiculos[index] = null
-            }
+            vehiculos.removeAt(vehiculos.indexOf { it?.id == id })
             vehiculo.copy().also {
-                redimensionarSiHaceFalta()
+                vehiculo.isDeleted = true
                 logger.info { "Vehiculo borrado correctamente" }
             }
         }
     }
-
-
-    private fun redimensionarSiHaceFalta() {
-        logger.debug { "Redimensionando si hace falta" }
-        val count = vehiculos.count { true }
-        if (count < maxVehiculos / 2) {
-            logger.error { "Redimensionando al 50%" }
-            redimensionar(modo = ModoRedimension.DIS)
-        }
-    }
-
-    private fun redimensionar(modo: ModoRedimension = ModoRedimension.AUM) {
-        logger.debug { "Redimensionando el array de vehiculos modo: ${modo.name}" }
-        if (modo == ModoRedimension.DIS) {
-            maxVehiculos /= 2
-            vehiculos = vehiculos.redimensionar(ModoRedimension.DIS, maxVehiculos)
-        } else {
-            maxVehiculos *= 2
-            vehiculos = vehiculos.redimensionar(ModoRedimension.AUM, maxVehiculos)
-        }
-        logger.debug { "Array redimensionado con ${vehiculos.size}" }
-    }
-
 }
